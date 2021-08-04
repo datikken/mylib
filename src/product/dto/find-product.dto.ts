@@ -1,4 +1,4 @@
 export class FindProductDTO {
-    category: string;
-    limit: number;
+	category: string;
+	limit: number;
 }
