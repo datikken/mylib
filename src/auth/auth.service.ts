@@ -25,27 +25,27 @@ export class AuthService {
 	}
 
 	async findUser(email: string) {
-		return this.userModel.findOne({email}).exec()
+		return this.userModel.findOne({email}).exec();
 	}
 
 	async validateUser(email: string, password: string): Promise<Pick<UserModel, 'email'>> {
 		const user = await this.findUser(email);
 		if(!user) {
-			throw new UnauthorizedException(USER_NOT_FOUND)
+			throw new UnauthorizedException(USER_NOT_FOUND);
 		}
 
 		const isCorrectPass = await compare(password, user.passwordHash);
 		if(!isCorrectPass) {
-			throw new UnauthorizedException(WRONG_PASSWORD)
+			throw new UnauthorizedException(WRONG_PASSWORD);
 		}
 
-		return { email: user.email }
+		return { email: user.email };
 	}
 
 	async login(email: string) {
 		const payload = {email};
 		return {
 			access_token: await this.jwtService.signAsync(payload)
-		}
+		};
 	}
 }
