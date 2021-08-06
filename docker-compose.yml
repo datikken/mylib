@@ -2,39 +2,19 @@ version: '3.8'
 
 services:
   dev:
-    container_name: nestjs_api_dev
-    image: nestjs-api-dev:1.0.0
+    container_name: backend
+    image: backend:1.0.0
     build:
       context: .
-      target: development
       dockerfile: ./Dockerfile
-    command: npm run start:debug
+    command: yarn run start:dev
     ports:
       - 3000:3000
-      - 9229:9229
     networks:
-      - nesjs-network
+      - mylib
     volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    restart: unless-stopped
-  prod:
-    container_name: nestjs_api_prod
-    image: nestjs-api-prod:1.0.0
-    build:
-      context: .
-      target: production
-      dockerfile: ./Dockerfile
-    command: npm run start:prod
-    ports:
-      - 3000:3000
-      - 9229:9229
-    networks:
-      - nesjs-network
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./.env:/opt/app/.env
     restart: unless-stopped
 
 networks:
-  nesjs-network:
+  mylib:
