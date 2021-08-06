@@ -9,8 +9,8 @@ export const getMongoConfig = async (configService: ConfigService): Promise<Type
 };
 
 const getMongoString = (configService: ConfigService) => {
-	return configService.get('MONGO_CONNECTION')
-}
+	return configService.get('MONGO_CONNECTION');
+};
 
 const getMongoOptions = () => ({
   	eNewUrlParser: true,
