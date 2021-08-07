@@ -1,39 +1,58 @@
-import {Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, UsePipes, ValidationPipe,UseGuards} from '@nestjs/common';
-import {CreateReviewDTO} from './dto/create-review.dto';
-import {ReviewService} from './review.service';
-import {REVIEW_NOT_FOUND} from './review.constants';
-import {JwtAuthGuard} from '../auth/guards/jwt.guard';
-import {UserEmail} from "../decorators/user-email.decorator";
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	HttpException,
+	HttpStatus,
+	Param,
+	Post,
+	UseGuards,
+	UsePipes,
+	ValidationPipe
+} from '@nestjs/common';
+import { IdValidationPipe } from 'src/pipes/ad-validation.pipe';
+import { TelegramService } from 'src/telegram/telegram.service';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { REVIEW_NOT_FOUND } from './review.constants';
+import { ReviewService } from './review.service';
 
 @Controller('review')
 export class ReviewController {
-	constructor(private readonly reviewService: ReviewService) {}
+	constructor(
+		private readonly reviewService: ReviewService,
+		private readonly telegramService: TelegramService
+	) { }
 
 	@UsePipes(new ValidationPipe())
 	@Post('create')
-	async create(@Body() dto: CreateReviewDTO) {
+	async create(@Body() dto: CreateReviewDto) {
 		return this.reviewService.create(dto);
 	}
 
-	@UseGuards(JwtAuthGuard)
-	@Get('/')
-	async getAllReviews() {
-		return this.reviewService.getAllReviews();
+	@UsePipes(new ValidationPipe())
+	@Post('notify')
+	async notify(@Body() dto: CreateReviewDto) {
+		const message = `Имя: ${dto.name}\n`
+			+ `Заголовок: ${dto.title}\n`
+			+ `Описание: ${dto.description}\n`
+			+ `Рейтинг: ${dto.rating}\n`
+			+ `ID Продукта: ${dto.productId}`;
+		return this.telegramService.sendMessage(message);
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Get('byProduct/:productId')
-	async getByProduct(@Param('productId') productId: string, @UserEmail() email: string) {
-		// YAGNI
-		console.log(email);
-		return this.reviewService.findByProductId(productId);
-	}
-
 	@Delete(':id')
-	async delete(@Param('id') id: string) {
+	async delete(@Param('id', IdValidationPipe) id: string) {
 		const deletedDoc = await this.reviewService.delete(id);
-		if(deletedDoc) {
+		if (!deletedDoc) {
 			throw new HttpException(REVIEW_NOT_FOUND, HttpStatus.NOT_FOUND);
 		}
+	}
+
+	@Get('byProduct/:productId')
+	async getByProduct(@Param('productId', IdValidationPipe) productId: string) {
+		return this.reviewService.findByProductId(productId);
 	}
 }
